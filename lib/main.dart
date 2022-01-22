@@ -15,36 +15,60 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
+          inputDecorationTheme:
+              InputDecorationTheme(border: OutlineInputBorder()),
+          // This is the theme of your application.
+          //
+          // Try running your application with "flutter run". You'll see the
+          // application has a blue toolbar. Then, without quitting the app, try
+          // changing the primarySwatch below to Colors.green and then invoke
+          // "hot reload" (press "r" in the console where you ran "flutter run",
+          // or simply save your changes to "hot reload" in a Flutter IDE).
+          // Notice that the counter didn't reset back to zero; the application
+          // is not restarted.
+          colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue)
+              .copyWith(secondary: const Color(0xff16e5a7))),
       home: const HomeScreen(),
     );
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Android Expert'),
+          title: const Text('Android Expert'),
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: FloatingActionButton.extended(
+            onPressed: () async {
+              final result = await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => _AddStudentForm(),
+                ),
+              );
+              setState(() {});
+            },
+            label: Row(
+              children: const [
+                Icon(Icons.add),
+                Text('Add Student'),
+              ],
+            )),
         body: FutureBuilder<List<StudentData>>(
           future: getStudents(),
           builder: (context, snapshot) {
             if (snapshot.hasData && snapshot != null) {
               return ListView.builder(
+                padding: EdgeInsets.only(bottom: 84),
                 itemCount: snapshot.data!.length,
                 itemBuilder: (context, index) {
                   return _Student(
@@ -59,6 +83,82 @@ class HomeScreen extends StatelessWidget {
             }
           },
         ));
+  }
+}
+
+class _AddStudentForm extends StatelessWidget {
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _courseController = TextEditingController();
+  final TextEditingController _scoreController = TextEditingController();
+
+  _AddStudentForm({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Add New Student'),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: FloatingActionButton.extended(
+          onPressed: () async {
+            try {
+              final newStudentDat = await saveStudent(
+                  _firstNameController.text,
+                  _lastNameController.text,
+                  _courseController.text,
+                  int.parse(_scoreController.text));
+              Navigator.pop(context, newStudentDat);
+            } catch (e) {
+              print(e.toString());
+            }
+          },
+          label: Row(
+            children: const [Icon(Icons.check), Text('Save')],
+          )),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _firstNameController,
+              decoration: InputDecoration(
+                label: Text('First Name'),
+              ),
+            ),
+            SizedBox(
+              height: 8,
+            ),
+            TextField(
+              controller: _lastNameController,
+              decoration: InputDecoration(
+                label: Text('Last Name'),
+              ),
+            ),
+            SizedBox(
+              height: 8,
+            ),
+            TextField(
+              controller: _courseController,
+              decoration: InputDecoration(
+                label: Text('Course'),
+              ),
+            ),
+            SizedBox(
+              height: 8,
+            ),
+            TextField(
+              keyboardType: TextInputType.number,
+              controller: _scoreController,
+              decoration: InputDecoration(
+                label: Text('Score'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
